@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type TransitionEvent,
+} from 'react'
 import { Link } from 'react-router'
 import clsx from 'clsx'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -14,17 +21,21 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import './Navbar.scss'
 
-type Phase = 'idle' | 'expanding' | 'expanded' | 'collapsing' | 'cubeCollapsing'
+// Each phase ends on a CSS transitionend, so the timing lives in Navbar.scss:
+// idle -> settling (cube morphs into the box) -> expanding (box grows) -> expanded (menu fades in)
+// -> collapsing (menu fades out) -> cubeCollapsing (box shrinks) -> unsettling (box morphs into the cube) -> idle
+type Phase =
+  | 'idle'
+  | 'settling'
+  | 'expanding'
+  | 'expanded'
+  | 'collapsing'
+  | 'cubeCollapsing'
+  | 'unsettling'
 
-// Show ul after cube expands width and height (0.3s + 0.5s + 0.5s)
-const EXPAND_MS = 1300
-// Start cube collapse after navbar fades
-const CUBE_COLLAPSE_DELAY_MS = 600
-// Total collapse time (0.6s + 0.5s + 0.5s + 0.3s)
-const COLLAPSE_MS = 1900
+const BOX_PHASES: Phase[] = ['expanding', 'expanded', 'collapsing', 'cubeCollapsing']
 
-// Y angles (deg) the spinning cube pauses at while hovered, and the tolerance
-const STOP_ANGLES = [40, 130, 220, 310]
+// While hovered, the spin pauses when it passes a corner (every 90deg from the resting angle)
 const STOP_TOLERANCE = 5
 
 const LINKS: { to: string; label: string; icon: IconDefinition }[] = [
@@ -35,9 +46,13 @@ const LINKS: { to: string; label: string; icon: IconDefinition }[] = [
   { to: '/contact', label: 'CONTACT', icon: faEnvelope },
 ]
 
+function mod(n: number, m: number): number {
+  return ((n % m) + m) % m
+}
+
 function getRotationY(matrix: DOMMatrix): number {
-  // Extract Y rotation from 3D transform matrix
-  return Math.atan2(matrix.m13, matrix.m33) * (180 / Math.PI)
+  // Y rotation of rotateX(a) rotateY(b), unaffected by the X tilt
+  return Math.atan2(matrix.m31, matrix.m11) * (180 / Math.PI)
 }
 
 export default function Navbar() {
@@ -47,12 +62,37 @@ export default function Navbar() {
   // The rAF loop is started once, so it reads live values through refs
   const phaseRef = useRef(phase)
   const hoveringRef = useRef(false)
+  // Whether the cube settles on its back face (half a turn from rest) instead of its front
+  const flippedRef = useRef(false)
+  const restYRef = useRef(0)
+  const navRef = useRef<HTMLElement>(null)
   const cubeRef = useRef<HTMLDivElement>(null)
-  const timeoutsRef = useRef<number[]>([])
+  const menuRef = useRef<HTMLUListElement>(null)
 
   useEffect(() => {
     phaseRef.current = phase
   }, [phase])
+
+  // Measure the menu so the box grows to exactly its size
+  useLayoutEffect(() => {
+    const nav = navRef.current
+    const menu = menuRef.current
+    if (!nav || !menu) return
+
+    restYRef.current = parseFloat(getComputedStyle(nav).getPropertyValue('--cube-rest-y'))
+
+    const measure = () => {
+      // Computed size is unrounded and ignores the skew
+      const { width, height } = getComputedStyle(menu)
+      nav.style.setProperty('--menu-width', width)
+      nav.style.setProperty('--menu-height', height)
+    }
+    measure()
+    // Re-measure when the size changes, e.g. once the font loads
+    const observer = new ResizeObserver(measure)
+    observer.observe(menu)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     let frameId: number
@@ -62,9 +102,8 @@ export default function Navbar() {
       if (cube && hoveringRef.current && phaseRef.current === 'idle') {
         const transform = getComputedStyle(cube).transform
         if (transform && transform !== 'none') {
-          // Normalize to 0-360 range
-          const y = ((getRotationY(new DOMMatrix(transform)) % 360) + 360) % 360
-          if (STOP_ANGLES.some((angle) => Math.abs(y - angle) < STOP_TOLERANCE)) {
+          const offset = mod(getRotationY(new DOMMatrix(transform)) - restYRef.current, 90)
+          if (offset < STOP_TOLERANCE || offset > 90 - STOP_TOLERANCE) {
             setRotationPaused(true)
           }
         }
@@ -76,14 +115,24 @@ export default function Navbar() {
     return () => cancelAnimationFrame(frameId)
   }, [])
 
-  useEffect(() => {
-    const timeouts = timeoutsRef.current
-    return () => timeouts.forEach(clearTimeout)
-  }, [])
+  // Drive the cube's inline transform for the morphs
+  useLayoutEffect(() => {
+    const cube = cubeRef.current
+    if (!cube) return
+    const flip = flippedRef.current ? ' rotateY(180deg)' : ''
 
-  const schedule = (fn: () => void, ms: number) => {
-    timeoutsRef.current.push(window.setTimeout(fn, ms))
-  }
+    if (phase === 'settling') {
+      // Commit the frozen pose so the transition starts from it
+      cube.getBoundingClientRect()
+      cube.style.transition = ''
+      cube.style.transform = `var(--cube-box)${flip}`
+    } else if (phase === 'unsettling') {
+      cube.style.transform = `var(--cube-rest)${flip}`
+    } else if (phase === 'idle') {
+      // Half a turn from rest looks identical, so dropping the flip here is invisible
+      cube.style.transform = ''
+    }
+  }, [phase])
 
   const onCubeHover = (hovering: boolean) => {
     hoveringRef.current = hovering
@@ -93,38 +142,60 @@ export default function Navbar() {
   const toggleMenu = () => {
     // Ignore clicks while an expand/collapse animation is running
     if (phase === 'idle') {
-      setPhase('expanding')
-      schedule(() => setPhase('expanded'), EXPAND_MS)
+      const cube = cubeRef.current
+      if (!cube) return
+      // Freeze the spin where it is, then morph from there to whichever face is nearer
+      const transform = getComputedStyle(cube).transform
+      const turns = Math.round((getRotationY(new DOMMatrix(transform)) - restYRef.current) / 180)
+      flippedRef.current = mod(turns, 2) === 1
+      cube.style.transition = 'none'
+      cube.style.transform = transform
+      setPhase('settling')
     } else if (phase === 'expanded') {
       setPhase('collapsing')
-      schedule(() => setPhase('cubeCollapsing'), CUBE_COLLAPSE_DELAY_MS)
-      schedule(() => setPhase('idle'), COLLAPSE_MS)
     }
   }
 
+  const onCubeTransitionEnd = (e: TransitionEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget || e.propertyName !== 'transform') return
+    if (phase === 'settling') setPhase('expanding')
+    else if (phase === 'unsettling') setPhase('idle')
+  }
+
+  const onBoxTransitionEnd = (e: TransitionEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return
+    if (phase === 'expanding' && e.propertyName === 'height') setPhase('expanded')
+    else if (phase === 'cubeCollapsing' && e.propertyName === 'width') setPhase('unsettling')
+  }
+
+  const onMenuTransitionEnd = (e: TransitionEvent<HTMLUListElement>) => {
+    if (e.target !== e.currentTarget || e.propertyName !== 'opacity') return
+    if (phase === 'collapsing') setPhase('cubeCollapsing')
+  }
+
   const isExpanded = phase === 'expanded'
+  const showBox = BOX_PHASES.includes(phase)
 
   return (
-    <nav className={clsx('navbar', isExpanded && 'expanded')}>
+    <nav ref={navRef} className={clsx('navbar', isExpanded && 'expanded')}>
       <div
-        className={clsx(
-          'cube-trigger',
-          phase === 'expanding' && 'expanding',
-          phase === 'cubeCollapsing' && 'collapsing',
-        )}
+        className={clsx('cube-trigger', phase === 'idle' && 'interactive')}
         onClick={toggleMenu}
         onMouseEnter={() => onCubeHover(true)}
         onMouseLeave={() => onCubeHover(false)}
       >
-        {/* 3D Cube for rotation (hidden during expansion) */}
+        {/* 3D Cube for rotation (hidden while the box is shown) */}
         <div
           ref={cubeRef}
           className={clsx(
             'cube-container',
             phase === 'idle' && 'rotating',
             rotationPaused && 'paused',
-            phase !== 'idle' && 'hidden',
+            (phase === 'settling' || phase === 'unsettling') && 'morphing',
+            phase === 'settling' && 'blank',
+            showBox && 'hidden',
           )}
+          onTransitionEnd={onCubeTransitionEnd}
         >
           <div className="cube-face front">
             <span className="initials">AP</span>
@@ -145,18 +216,19 @@ export default function Navbar() {
           <div className="cube-face top"></div>
         </div>
 
-        {/* Isometric cube for expansion (shown during expansion, no content) */}
+        {/* Isometric box that grows into the menu (no content) */}
         <div
           className={clsx(
             'isometric-cube',
-            phase === 'expanding' && 'expanding-iso',
-            (phase === 'expanded' || phase === 'collapsing') && 'expanded-iso',
-            phase === 'cubeCollapsing' && 'collapsing-iso',
+            showBox && 'visible',
+            (phase === 'expanding' || phase === 'expanded' || phase === 'collapsing') && 'open',
+            phase === 'cubeCollapsing' && 'closing',
           )}
+          onTransitionEnd={onBoxTransitionEnd}
         ></div>
       </div>
 
-      <ul className={clsx(isExpanded && 'show')}>
+      <ul ref={menuRef} className={clsx(isExpanded && 'show')} onTransitionEnd={onMenuTransitionEnd}>
         {LINKS.map(({ to, label, icon }, index) => (
           <li key={to} style={{ '--i': LINKS.length - index } as CSSProperties}>
             <Link to={to} onClick={toggleMenu}>
