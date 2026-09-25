@@ -87,12 +87,23 @@ $cubeTop: $menuY - ($boxWidth * $tanFront - $boxHeight + $sideDepth * ($tanSide 
   transform: skewY($sideAngle);
 }
 
+// Distance from the corner of the content area to the navbar
+$navInset: 40px;
+
+// Zero-size marker at the top-left corner of whatever contains the navbar.
+// Sticky keeps the navbar in view while scrolling without leaving that container.
+.navbar-anchor {
+  position: sticky;
+  top: 0;
+  height: 0;
+  z-index: 10;
+}
+
 // Everything is nested under .navbar so these rules don't leak to the rest of the site
 .navbar {
-  position: fixed;
-  top: 50px;
-  left: 50px;
-  z-index: 2;
+  position: absolute;
+  top: $navInset;
+  left: $navInset;
 
   // Read by Navbar.tsx
   --cube-rest: rotateX(#{$cubeRotationX}) rotateY(#{$cubeRotationY});
@@ -355,48 +366,6 @@ $cubeTop: $menuY - ($boxWidth * $tanFront - $boxHeight + $sideDepth * ($tanSide 
 
   li:hover a .icon {
     background: $hoverColor;
-  }
-
-  // Collapse button
-  .collapse-btn {
-    position: absolute;
-    bottom: -60px;
-    left: 0;
-    width: 50px;
-    height: 50px;
-    background: $primaryFaceColor;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transform: skewY(-$frontSkew);
-    transition: all 0.3s ease;
-    // Appears once the menu has faded in
-    animation: fadeInBtn 0.6s ease $menuFadeDuration both;
-
-    .icon {
-      color: $contentColor;
-      font-size: 20px;
-    }
-
-    &:hover {
-      background: $hoverColor;
-
-      .icon {
-        color: $contentHoverColor;
-      }
-    }
-  }
-}
-
-@keyframes fadeInBtn {
-  from {
-    opacity: 0;
-    transform: skewY(-$frontSkew) translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: skewY(-$frontSkew) translateY(0);
   }
 }
 

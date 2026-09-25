@@ -10,13 +10,10 @@ import { Link } from 'react-router'
 import clsx from 'clsx'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  faArrowTurnUp,
   faBook,
   faChessKnight,
-  faEnvelope,
   faHome,
   faLaptopCode,
-  faUser,
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 import './Navbar.scss'
@@ -40,10 +37,8 @@ const STOP_TOLERANCE = 5
 
 const LINKS: { to: string; label: string; icon: IconDefinition }[] = [
   { to: '/', label: 'HOME', icon: faHome },
-  { to: '/about', label: 'ABOUT', icon: faUser },
   { to: '/portfolio', label: 'PORTFOLIO', icon: faLaptopCode },
   { to: '/devlogs', label: 'DEVLOGS', icon: faBook },
-  { to: '/contact', label: 'CONTACT', icon: faEnvelope },
 ]
 
 function mod(n: number, m: number): number {
@@ -139,22 +134,37 @@ export default function Navbar() {
     if (!hovering) setRotationPaused(false)
   }
 
-  const toggleMenu = () => {
-    // Ignore clicks while an expand/collapse animation is running
-    if (phase === 'idle') {
-      const cube = cubeRef.current
-      if (!cube) return
-      // Freeze the spin where it is, then morph from there to whichever face is nearer
-      const transform = getComputedStyle(cube).transform
-      const turns = Math.round((getRotationY(new DOMMatrix(transform)) - restYRef.current) / 180)
-      flippedRef.current = mod(turns, 2) === 1
-      cube.style.transition = 'none'
-      cube.style.transform = transform
-      setPhase('settling')
-    } else if (phase === 'expanded') {
+  // Both ignore clicks while an expand/collapse animation is running
+  const openMenu = () => {
+    if (phase !== 'idle') return
+    const cube = cubeRef.current
+    if (!cube) return
+    // Freeze the spin where it is, then morph from there to whichever face is nearer
+    const transform = getComputedStyle(cube).transform
+    const turns = Math.round((getRotationY(new DOMMatrix(transform)) - restYRef.current) / 180)
+    flippedRef.current = mod(turns, 2) === 1
+    cube.style.transition = 'none'
+    cube.style.transform = transform
+    setPhase('settling')
+  }
+
+  const closeMenu = () => {
+    if (phase === 'expanded') setPhase('collapsing')
+  }
+
+  // While open, a click anywhere outside the navbar closes it
+  useEffect(() => {
+    if (phase !== 'expanded') return
+    const onDocumentClick = (e: MouseEvent) => {
+      const nav = navRef.current
+      const target = e.target as Node
+      // The nav element itself is just the transparent box around the menu
+      if (nav && target !== nav && nav.contains(target)) return
       setPhase('collapsing')
     }
-  }
+    document.addEventListener('click', onDocumentClick)
+    return () => document.removeEventListener('click', onDocumentClick)
+  }, [phase])
 
   const onCubeTransitionEnd = (e: TransitionEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget || e.propertyName !== 'transform') return
@@ -177,77 +187,71 @@ export default function Navbar() {
   const showBox = BOX_PHASES.includes(phase)
 
   return (
-    <nav ref={navRef} className={clsx('navbar', isExpanded && 'expanded')}>
-      <div
-        className={clsx('cube-trigger', phase === 'idle' && 'interactive')}
-        onClick={toggleMenu}
-        onMouseEnter={() => onCubeHover(true)}
-        onMouseLeave={() => onCubeHover(false)}
-      >
-        {/* 3D Cube for rotation (hidden while the box is shown) */}
+    <div className="navbar-anchor">
+      <nav ref={navRef} className={clsx('navbar', isExpanded && 'expanded')}>
         <div
-          ref={cubeRef}
-          className={clsx(
-            'cube-container',
-            phase === 'idle' && 'rotating',
-            rotationPaused && 'paused',
-            (phase === 'settling' || phase === 'unsettling') && 'morphing',
-            phase === 'settling' && 'blank',
-            showBox && 'hidden',
-          )}
-          onTransitionEnd={onCubeTransitionEnd}
+          className={clsx('cube-trigger', phase === 'idle' && 'interactive')}
+          onClick={openMenu}
+          onMouseEnter={() => onCubeHover(true)}
+          onMouseLeave={() => onCubeHover(false)}
         >
-          <div className="cube-face front">
-            <span className="initials">AP</span>
-          </div>
-          <div className="cube-face back">
-            <span className="initials">AP</span>
-          </div>
-          <div className="cube-face left">
-            <span className="icon">
-              <FontAwesomeIcon icon={faChessKnight} />
-            </span>
-          </div>
-          <div className="cube-face right">
-            <span className="icon">
-              <FontAwesomeIcon icon={faChessKnight} />
-            </span>
-          </div>
-          <div className="cube-face top"></div>
-        </div>
-
-        {/* Isometric box that grows into the menu (no content) */}
-        <div
-          className={clsx(
-            'isometric-cube',
-            showBox && 'visible',
-            (phase === 'expanding' || phase === 'expanded' || phase === 'collapsing') && 'open',
-            phase === 'cubeCollapsing' && 'closing',
-          )}
-          onTransitionEnd={onBoxTransitionEnd}
-        ></div>
-      </div>
-
-      <ul ref={menuRef} className={clsx(isExpanded && 'show')} onTransitionEnd={onMenuTransitionEnd}>
-        {LINKS.map(({ to, label, icon }, index) => (
-          <li key={to} style={{ '--i': LINKS.length - index } as CSSProperties}>
-            <Link to={to} onClick={toggleMenu}>
+          {/* 3D Cube for rotation (hidden while the box is shown) */}
+          <div
+            ref={cubeRef}
+            className={clsx(
+              'cube-container',
+              phase === 'idle' && 'rotating',
+              rotationPaused && 'paused',
+              (phase === 'settling' || phase === 'unsettling') && 'morphing',
+              phase === 'settling' && 'blank',
+              showBox && 'hidden',
+            )}
+            onTransitionEnd={onCubeTransitionEnd}
+          >
+            <div className="cube-face front">
+              <span className="initials">AP</span>
+            </div>
+            <div className="cube-face back">
+              <span className="initials">AP</span>
+            </div>
+            <div className="cube-face left">
               <span className="icon">
-                <FontAwesomeIcon icon={icon} />
+                <FontAwesomeIcon icon={faChessKnight} />
               </span>
-              <span className="label">{label}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+            </div>
+            <div className="cube-face right">
+              <span className="icon">
+                <FontAwesomeIcon icon={faChessKnight} />
+              </span>
+            </div>
+            <div className="cube-face top"></div>
+          </div>
 
-      {isExpanded && (
-        <div className="collapse-btn" onClick={toggleMenu}>
-          <span className="icon">
-            <FontAwesomeIcon icon={faArrowTurnUp} />
-          </span>
+          {/* Isometric box that grows into the menu (no content) */}
+          <div
+            className={clsx(
+              'isometric-cube',
+              showBox && 'visible',
+              (phase === 'expanding' || phase === 'expanded' || phase === 'collapsing') && 'open',
+              phase === 'cubeCollapsing' && 'closing',
+            )}
+            onTransitionEnd={onBoxTransitionEnd}
+          ></div>
         </div>
-      )}
-    </nav>
+
+        <ul ref={menuRef} className={clsx(isExpanded && 'show')} onTransitionEnd={onMenuTransitionEnd}>
+          {LINKS.map(({ to, label, icon }, index) => (
+            <li key={to} style={{ '--i': LINKS.length - index } as CSSProperties}>
+              <Link to={to} onClick={closeMenu}>
+                <span className="icon">
+                  <FontAwesomeIcon icon={icon} />
+                </span>
+                <span className="label">{label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
   )
 }
