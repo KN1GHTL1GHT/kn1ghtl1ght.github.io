@@ -1,0 +1,93 @@
+@use 'sass:math';
+
+// Navbar geometry and timing, shared with anything that lays out around the navbar
+
+// Cube 3D Variables
+$cubeSize: 60px; // edge length of the spinning cube
+$cubeRotationX: -20deg; // Default X-axis rotation (tilt forward/back)
+$cubeRotationY: 40deg; // Default Y-axis rotation (spin left/right)
+$rotationDuration: 4s;
+$rotationDelay: 0.2s;
+
+// Menu box Variables
+// The expanded menu is a box drawn with 2D skews: a front face, a left face and a top face
+$menuX: 22px; // top-left corner of the menu's front face, relative to the nav
+$menuY: 14px;
+$menuWidth: 150px;
+$menuItemPadding: 15px;
+$frontSkew: 15deg; // front face slopes up to the right by this angle
+$sideAngle: 30deg; // angle the left and top faces recede at
+$sideDepth: 40px; // how deep the box is (width of the left face)
+
+// Timing Variables
+$morphDuration: 0.4s; // cube <-> box morph; hover effects fade over the same time so they're gone by the swap
+$expandStepDuration: 0.5s; // box grows in width, then in height
+$menuFadeDuration: 0.6s;
+
+// Derived geometry - change the variables above, not these
+$topFaceHeight: $sideDepth * math.tan($sideAngle);
+$topFaceSkew: 90deg - $sideAngle;
+
+// The collapsed box is the size of the cube's front face at its resting rotation
+$boxWidth: $cubeSize * math.cos($cubeRotationY);
+$boxHeight: $cubeSize * math.cos($cubeRotationX);
+
+// Projection that draws the 3D cube exactly on top of the collapsed box.
+// Columns are where the cube's x, y and z axes land on screen (per px of cube).
+// The z row is borrowed from the resting rotation so the same faces stay visible.
+$tanFront: math.tan($frontSkew);
+$tanSide: math.tan($sideAngle);
+$scaleX: math.div($boxWidth, $cubeSize);
+$scaleY: math.div($boxHeight, $cubeSize);
+$scaleZ: math.div($sideDepth, $cubeSize);
+$cubeBoxTransform: matrix3d(
+  $scaleX, -$scaleX * $tanFront, -1 * math.sin($cubeRotationY) * math.cos($cubeRotationX), 0,
+  0, $scaleY, math.sin($cubeRotationX), 0,
+  $scaleZ, $scaleZ * ($tanSide - $tanFront), math.cos($cubeRotationY) * math.cos($cubeRotationX), 0,
+  0, 0, 0, 1
+);
+
+// Place the cube so that, in the box pose, its front face's top-left corner is the menu's
+$cubeLeft: $menuX + ($boxWidth - $sideDepth) * 0.5 - $cubeSize * 0.5;
+$cubeTop: $menuY - ($boxWidth * $tanFront - $boxHeight + $sideDepth * ($tanSide - $tanFront)) * 0.5 - $cubeSize * 0.5;
+
+// A box is drawn as one solid outline (front + top + left faces) with the darker left face on top.
+// Drawing the faces as separate touching shapes leaves a light seam where their anti-aliased
+// edges meet; over a solid backing those edges blend into the box's colour instead.
+
+// The box's outline: a hexagon around a front face, on an element that also covers
+// the left and top faces (inset by $sideDepth on the left and $topFaceHeight on top)
+@mixin box-outline {
+  clip-path: polygon(
+    0 0,
+    calc(100% - #{$sideDepth}) 0,
+    100% $topFaceHeight,
+    100% 100%,
+    $sideDepth 100%,
+    0 calc(100% - #{$topFaceHeight})
+  );
+}
+
+// Left face, positioned against the front face it belongs to
+@mixin left-face {
+  position: absolute;
+  top: 0;
+  left: -$sideDepth;
+  width: $sideDepth;
+  height: 100%;
+  transform-origin: right;
+  transform: skewY($sideAngle);
+}
+
+// Footprint of the navbar, so surrounding layout can make room for it.
+// The nav's origin sits this far in from the footprint's top-left corner:
+// the box's left face and the menu's raised top-right corner overhang it.
+$hoverScale: 1.1;
+$navOverhangLeft: $sideDepth - $menuX;
+$navOverhangTop: -1 * ($menuY - $menuWidth * $tanFront - $sideDepth * ($tanSide - $tanFront));
+
+// Collapsed: the (hovered) cube. Open: the menu, whose measured size is in --menu-width/--menu-height
+$footprintClosedWidth: $navOverhangLeft + $cubeLeft + $cubeSize * (1 + $hoverScale) * 0.5;
+$footprintClosedHeight: $navOverhangTop + $cubeTop + $cubeSize * (1 + $hoverScale) * 0.5;
+$footprintOpenWidth: calc(#{$navOverhangLeft + $menuX} + var(--menu-width));
+$footprintOpenHeight: calc(#{$navOverhangTop + $menuY} + var(--menu-height));

@@ -1,0 +1,18 @@
+// Green / beige palette from the original site
+$beige: #f6f3e4;
+$beigeDark: #e9e4cf;
+$green: #35605A;
+$greenMid: #2F6C61;
+$greenBright: #31E981;
+$ink: #00120B;
+
+$lineColor: rgba($green, 0.25);
+
+// Layouts switch to a single column at or below this width
+$mobileBreakpoint: 640px;
+
+@mixin mobile {
+  @media (max-width: $mobileBreakpoint) {
+    @content;
+  }
+}

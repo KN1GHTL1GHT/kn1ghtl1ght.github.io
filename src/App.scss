@@ -1,17 +1,22 @@
-$pageBackground: #f3f3f3; // swap for the dog picture later
-$panelBackground: #ffffff;
-$panelWidth: 900px;
+@use 'styles/theme' as *;
+
+$pageBackground: $beigeDark;
+$panelBackground: $beige; // matches the dog sketch's paper colour
+$panelWidth: 1100px;
 $panelMargin: 34px; // gap above and below the panel
 $panelPadding: 40px;
-$navClearance: 150px; // keeps page content below the collapsed cube in the top-left corner
 
 .site {
   min-height: 100vh;
   padding: $panelMargin 16px;
   background: $pageBackground;
+
+  @include mobile {
+    padding: 0;
+  }
 }
 
-// Content area, in front of the page background; the navbar sits in its top-left corner
+// Content area, in front of the page background
 .panel {
   position: relative;
   z-index: 1;
@@ -19,11 +24,22 @@ $navClearance: 150px; // keeps page content below the collapsed cube in the top-
   min-height: calc(100vh - #{$panelMargin * 2});
   margin: 0 auto;
   background: $panelBackground;
-  border: 1px solid #e6e6e6;
+  border: 1px solid $lineColor;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+  // Full-bleed on phones
+  @include mobile {
+    min-height: 100vh;
+    border: none;
+    border-radius: 0;
+  }
 }
 
 .panel-content {
-  padding: $navClearance $panelPadding $panelPadding;
+  padding: $panelPadding;
+
+  @include mobile {
+    padding: 20px;
+  }
 }

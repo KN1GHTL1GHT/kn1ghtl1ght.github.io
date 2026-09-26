@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
-import Navbar from './components/Navbar/Navbar'
+import Header from './components/Header/Header'
 import Home from './pages/Home'
 import Portfolio from './pages/Portfolio'
 import Devlogs from './pages/Devlogs'
@@ -10,7 +10,7 @@ function App() {
     <BrowserRouter>
       <div className="site">
         <div className="panel">
-          <Navbar />
+          <Header />
           <div className="panel-content">
             <Routes>
               <Route path="/" element={<Home />} />

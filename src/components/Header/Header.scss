@@ -1,0 +1,245 @@
+@use 'sass:math';
+@use '../../styles/theme' as *;
+@use '../Navbar/geometry' as nav;
+
+$headerInset: 40px; // distance from the panel's corner to the collapsed cube
+$headerInsetMobile: 20px;
+$headerTopMobile: 12px; // space above the open menu's raised corner
+$textGap: 28px; // space between the navbar and the text beside it, and between the blurb and the dog
+
+// Below this width the dog moves under the blurb instead of beside it
+$stackDogBreakpoint: 960px;
+
+// The dog picture is cropped out of a wide sketch; the crop is in the source image's pixels
+$dogSource: 1920px;
+$dogCropX: 850px;
+$dogCropY: 280px;
+$dogCropWidth: 1060px;
+$dogCropHeight: 745px;
+$dogWidth: 320px; // fixed display size; the height follows the crop's shape
+$dogScale: math.div($dogWidth, $dogCropWidth);
+$dogHeight: $dogCropHeight * $dogScale;
+
+// Timing shared with the navbar's box: it grows in width, then in height
+$step: nav.$expandStepDuration;
+$fade: nav.$menuFadeDuration;
+
+// The first row is never shorter than the collapsed cube, which spans all rows
+$introRow: minmax(nav.$footprintClosedHeight, auto);
+
+// The second row goes from 0fr (collapsed) to 1fr (its content's height) while the navbar opens.
+// Its items stretch to the row with no height of their own and clip their content, so 0fr really is zero.
+.site-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: $introRow 0fr;
+  grid-template-areas:
+    "nav name  name"
+    "nav blurb dog";
+  column-gap: $textGap;
+  // The navbar's footprint already includes room for its overhang, so subtract it from the inset
+  padding: max(0px, $headerInset - nav.$navOverhangTop) $headerInset 24px max(0px, $headerInset - nav.$navOverhangLeft);
+  border-bottom: 1px solid $lineColor;
+  transition: grid-template-rows $step ease;
+
+  &.open {
+    grid-template-rows: $introRow 1fr;
+    // Grows in the navbar's second step, after its width
+    transition: grid-template-rows $step ease $step;
+  }
+
+  // Medium screens: the dog drops under the blurb. Its row is sized by the dog's own
+  // (animated) height, since two 0fr/1fr rows would both grow to the taller one's height.
+  @media (max-width: $stackDogBreakpoint) {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: $introRow 0fr auto;
+    grid-template-areas:
+      "nav name"
+      "nav blurb"
+      "nav dog";
+
+    &.open {
+      grid-template-rows: $introRow 1fr auto;
+    }
+  }
+
+  // Phones: one column, with the navbar on top pushing everything down
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 0fr auto;
+    grid-template-areas:
+      "nav"
+      "name"
+      "blurb"
+      "dog";
+    // Keep the whole footprint inside the inset, since the cube sits close to the edge here
+    padding: $headerTopMobile $headerInsetMobile 20px $headerInsetMobile;
+
+    &.open {
+      grid-template-rows: auto auto 1fr auto;
+    }
+  }
+}
+
+.site-header > .navbar-slot {
+  grid-area: nav;
+  align-self: start;
+}
+
+// Hidden until the navbar opens, then fades in while its row grows; fades out with the menu.
+// Content sits at the bottom, so it rises into view as the row opens.
+@mixin reveal {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity $fade ease, visibility 0s linear $fade;
+
+  .revealed & {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity $step ease $step;
+  }
+}
+
+// On phones, line text up with the cube rather than the navbar's footprint
+@mixin align-with-cube {
+  @include mobile {
+    margin-left: nav.$navOverhangLeft;
+  }
+}
+
+.header-intro {
+  grid-area: name;
+  // Line the name up with the top of the cube
+  padding-top: nav.$navOverhangTop;
+  color: $green;
+  @include align-with-cube;
+
+  @include mobile {
+    padding-top: 12px;
+  }
+}
+
+.header-name {
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: $green;
+
+  @include mobile {
+    font-size: 1.7rem;
+  }
+}
+
+.header-title {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  font-size: 1rem;
+  color: $greenMid;
+
+  // Dot between items, trailing so a wrapped line never starts with one
+  span:not(:last-child)::after {
+    content: '·';
+    margin: 0 0.5em;
+  }
+
+  // One item per line instead of dots
+  @include mobile {
+    flex-direction: column;
+    font-size: 0.9rem;
+    line-height: 1.45;
+
+    span::after {
+      display: none;
+    }
+  }
+}
+
+.header-blurb {
+  grid-area: blurb;
+  @include reveal;
+  @include align-with-cube;
+}
+
+.header-quote {
+  // Spacing lives on the content, not the blurb, so the collapsed row can shrink to zero
+  margin-top: 20px;
+  font-style: italic;
+  color: $greenMid;
+  border-left: 3px solid $lineColor;
+  padding-left: 12px;
+}
+
+.header-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  // Room for the buttons' hover lift and shadow inside the clipped area
+  padding-bottom: 6px;
+}
+
+.header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.2rem;
+  background: $green;
+  color: $beige;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: $greenBright;
+    color: $ink;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.header-dog {
+  grid-area: dog;
+  @include reveal;
+  @include align-with-cube;
+  align-items: flex-end; // against the right edge
+
+  // In its own row the dog grows its own height, in step with the blurb's row
+  @media (max-width: $stackDogBreakpoint) {
+    align-items: flex-start;
+    height: 0;
+    transition: height $step ease, opacity $fade ease, visibility 0s linear $fade;
+
+    // Menu fading out: still full height
+    .open & {
+      height: $dogHeight;
+      transition: height $step ease $step, opacity $fade ease, visibility 0s linear $fade;
+    }
+
+    .open.revealed & {
+      transition: height $step ease $step, opacity $step ease $step;
+    }
+  }
+}
+
+.header-dog-image {
+  flex: none;
+  width: $dogWidth;
+  height: $dogHeight;
+  background-image: url('../../assets/dog.jpg');
+  background-repeat: no-repeat;
+  background-size: $dogSource * $dogScale auto;
+  background-position: (-$dogCropX * $dogScale) (-$dogCropY * $dogScale);
+}

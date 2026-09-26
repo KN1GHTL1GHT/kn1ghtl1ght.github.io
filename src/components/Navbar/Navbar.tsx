@@ -21,7 +21,7 @@ import './Navbar.scss'
 // Each phase ends on a CSS transitionend, so the timing lives in Navbar.scss:
 // idle -> settling (cube morphs into the box) -> expanding (box grows) -> expanded (menu fades in)
 // -> collapsing (menu fades out) -> cubeCollapsing (box shrinks) -> unsettling (box morphs into the cube) -> idle
-type Phase =
+export type NavbarPhase =
   | 'idle'
   | 'settling'
   | 'expanding'
@@ -30,7 +30,9 @@ type Phase =
   | 'cubeCollapsing'
   | 'unsettling'
 
-const BOX_PHASES: Phase[] = ['expanding', 'expanded', 'collapsing', 'cubeCollapsing']
+const BOX_PHASES: NavbarPhase[] = ['expanding', 'expanded', 'collapsing', 'cubeCollapsing']
+// Phases where the box is at (or growing to) the menu's size
+const OPEN_PHASES: NavbarPhase[] = ['expanding', 'expanded', 'collapsing']
 
 // While hovered, the spin pauses when it passes a corner (every 90deg from the resting angle)
 const STOP_TOLERANCE = 5
@@ -50,8 +52,13 @@ function getRotationY(matrix: DOMMatrix): number {
   return Math.atan2(matrix.m31, matrix.m11) * (180 / Math.PI)
 }
 
-export default function Navbar() {
-  const [phase, setPhase] = useState<Phase>('idle')
+type NavbarProps = {
+  // Lets surrounding layout animate along with the navbar
+  onPhaseChange?: (phase: NavbarPhase) => void
+}
+
+export default function Navbar({ onPhaseChange }: NavbarProps) {
+  const [phase, setPhase] = useState<NavbarPhase>('idle')
   const [rotationPaused, setRotationPaused] = useState(false)
 
   // The rAF loop is started once, so it reads live values through refs
@@ -60,27 +67,31 @@ export default function Navbar() {
   // Whether the cube settles on its back face (half a turn from rest) instead of its front
   const flippedRef = useRef(false)
   const restYRef = useRef(0)
+  const slotRef = useRef<HTMLDivElement>(null)
   const navRef = useRef<HTMLElement>(null)
   const cubeRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLUListElement>(null)
 
   useEffect(() => {
     phaseRef.current = phase
-  }, [phase])
+    onPhaseChange?.(phase)
+  }, [phase, onPhaseChange])
 
   // Measure the menu so the box grows to exactly its size
   useLayoutEffect(() => {
+    const slot = slotRef.current
     const nav = navRef.current
     const menu = menuRef.current
-    if (!nav || !menu) return
+    if (!slot || !nav || !menu) return
 
     restYRef.current = parseFloat(getComputedStyle(nav).getPropertyValue('--cube-rest-y'))
 
     const measure = () => {
       // Computed size is unrounded and ignores the skew
       const { width, height } = getComputedStyle(menu)
-      nav.style.setProperty('--menu-width', width)
-      nav.style.setProperty('--menu-height', height)
+      // Set on the slot so both it and the box can use them
+      slot.style.setProperty('--menu-width', width)
+      slot.style.setProperty('--menu-height', height)
     }
     measure()
     // Re-measure when the size changes, e.g. once the font loads
@@ -187,7 +198,14 @@ export default function Navbar() {
   const showBox = BOX_PHASES.includes(phase)
 
   return (
-    <div className="navbar-anchor">
+    <div
+      ref={slotRef}
+      className={clsx(
+        'navbar-slot',
+        OPEN_PHASES.includes(phase) && 'open',
+        phase === 'cubeCollapsing' && 'closing',
+      )}
+    >
       <nav ref={navRef} className={clsx('navbar', isExpanded && 'expanded')}>
         <div
           className={clsx('cube-trigger', phase === 'idle' && 'interactive')}
@@ -232,7 +250,7 @@ export default function Navbar() {
             className={clsx(
               'isometric-cube',
               showBox && 'visible',
-              (phase === 'expanding' || phase === 'expanded' || phase === 'collapsing') && 'open',
+              OPEN_PHASES.includes(phase) && 'open',
               phase === 'cubeCollapsing' && 'closing',
             )}
             onTransitionEnd={onBoxTransitionEnd}
