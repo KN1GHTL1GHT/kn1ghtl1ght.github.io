@@ -19,6 +19,9 @@ $dogCropHeight: 745px;
 $dogWidth: 320px; // fixed display size; the height follows the crop's shape
 $dogScale: math.div($dogWidth, $dogCropWidth);
 $dogHeight: $dogCropHeight * $dogScale;
+// The top-left of the crop is blank beside the name row, so the title may run this far over the picture
+$dogClearLeft: 120px;
+$dogTop: 18px; // space above the picture; it's the tallest thing in the open header, so this sets where everything sits
 
 // Timing shared with the navbar's box: it grows in width, then in height
 $step: nav.$expandStepDuration;
@@ -27,15 +30,16 @@ $fade: nav.$menuFadeDuration;
 // The first row is never shorter than the collapsed cube, which spans all rows
 $introRow: minmax(nav.$footprintClosedHeight, auto);
 
-// The second row goes from 0fr (collapsed) to 1fr (its content's height) while the navbar opens.
-// Its items stretch to the row with no height of their own and clip their content, so 0fr really is zero.
+// The second row goes from 0fr (collapsed) to 1fr while the navbar opens. Items that span it
+// (the navbar and the picture) only size it while it's open, so a collapsed header is just the name row.
+// The blurb stretches to its row with no height of its own and clips its content, so 0fr really is zero.
 .site-header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-rows: $introRow 0fr;
   grid-template-areas:
-    "nav name  name"
-    "nav blurb dog";
+    "nav name  pic"
+    "nav blurb pic";
   column-gap: $textGap;
   // The navbar's footprint already includes room for its overhang, so subtract it from the inset
   padding: max(0px, $headerInset - nav.$navOverhangTop) $headerInset 24px max(0px, $headerInset - nav.$navOverhangLeft);
@@ -55,8 +59,7 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
     grid-template-rows: $introRow 0fr auto;
     grid-template-areas:
       "nav name"
-      "nav blurb"
-      "nav dog";
+      "pic blurb";
 
     &.open {
       grid-template-rows: $introRow 1fr auto;
@@ -68,10 +71,8 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto 0fr auto;
     grid-template-areas:
-      "nav"
-      "name"
-      "blurb"
-      "dog";
+      "nav name"
+      "pic blurb";
     // Keep the whole footprint inside the inset, since the cube sits close to the edge here
     padding: $headerTopMobile $headerInsetMobile 20px $headerInsetMobile;
 
@@ -114,6 +115,13 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
 
 .header-intro {
   grid-area: name;
+  // Above the (blank) top-left of the picture, so the title can stay on one line
+  position: relative;
+  z-index: 1;
+
+  @media (min-width: $stackDogBreakpoint + 1px) {
+    margin-right: -$dogClearLeft;
+  }
   // Line the name up with the top of the cube
   padding-top: nav.$navOverhangTop;
   color: $green;
@@ -211,14 +219,23 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
 }
 
 .header-dog {
-  grid-area: dog;
+  grid-area: pic;
   @include reveal;
   @include align-with-cube;
   align-items: flex-end; // against the right edge
+  // Pinned to the top and not clipped, so the dog sits in its final spot the whole time and
+  // simply fades in once the header has finished growing. Its height is what sizes the open header.
+  justify-content: flex-start;
+  overflow: visible;
+
+  .revealed & {
+    transition: opacity $fade ease $step * 2;
+  }
 
   // In its own row the dog grows its own height, in step with the blurb's row
   @media (max-width: $stackDogBreakpoint) {
     align-items: flex-start;
+    overflow: hidden;
     height: 0;
     transition: height $step ease, opacity $fade ease, visibility 0s linear $fade;
 
@@ -236,6 +253,7 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
 
 .header-dog-image {
   flex: none;
+  margin-top: $dogTop;
   width: $dogWidth;
   height: $dogHeight;
   background-image: url('../../assets/dog.jpg');
