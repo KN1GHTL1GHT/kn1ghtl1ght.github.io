@@ -5,34 +5,44 @@
 $headerInset: 40px; // distance from the panel's corner to the collapsed cube
 $headerInsetMobile: 20px;
 $headerTopMobile: 12px; // space above the open menu's raised corner
-$textGap: 28px; // space between the navbar and the text beside it, and between the blurb and the dog
+$textGap: 35px; // space between the navbar and the text beside it, and between the blurb and the dog
+$textGapMobile: 16px;
 
-// Below this width the dog moves under the blurb instead of beside it
-$stackDogBreakpoint: 960px;
+// At or below this width the dog moves under the navbar, and the text lines up on the right
+$compactBreakpoint: 960px;
 
 // The dog picture is cropped out of a wide sketch; the crop is in the source image's pixels
 $dogSource: 1920px;
+$dogSourceHeight: 1080px;
 $dogCropX: 850px;
 $dogCropY: 280px;
 $dogCropWidth: 1060px;
 $dogCropHeight: 745px;
-$dogWidth: 320px; // fixed display size; the height follows the crop's shape
-$dogScale: math.div($dogWidth, $dogCropWidth);
-$dogHeight: $dogCropHeight * $dogScale;
+$dogWidth: 320px; // display size (phones shrink it to fit); the height follows the crop's shape
 // The top-left of the crop is blank beside the name row, so the title may run this far over the picture
 $dogClearLeft: 120px;
 $dogTop: 18px; // space above the picture; it's the tallest thing in the open header, so this sets where everything sits
+
+// The crop as percentages, so it holds at any display size. A background-position percentage
+// lines up that fraction of the image with the same fraction of the box, hence the (box - image) divisors.
+$dogBackgroundSize: math.percentage(math.div($dogSource, $dogCropWidth));
+$dogBackgroundX: math.percentage(math.div($dogCropX, $dogSource - $dogCropWidth));
+$dogBackgroundY: math.percentage(math.div($dogCropY, $dogSourceHeight - $dogCropHeight));
+
+// Width of the open navbar's footprint (the menu's width is fixed in the navbar's geometry)
+$navOpenWidth: nav.$navOverhangLeft + nav.$menuX + nav.$menuWidth;
 
 // Timing shared with the navbar's box: it grows in width, then in height
 $step: nav.$expandStepDuration;
 $fade: nav.$menuFadeDuration;
 
-// The first row is never shorter than the collapsed cube, which spans all rows
+// The first row is never shorter than the collapsed cube
 $introRow: minmax(nav.$footprintClosedHeight, auto);
 
 // The second row goes from 0fr (collapsed) to 1fr while the navbar opens. Items that span it
-// (the navbar and the picture) only size it while it's open, so a collapsed header is just the name row.
-// The blurb stretches to its row with no height of its own and clips its content, so 0fr really is zero.
+// (on wide screens, the navbar and the picture) only size it while it's open, so a collapsed header
+// is just the name row. The blurb stretches to its row with no height of its own and clips its
+// content, so 0fr really is zero.
 .site-header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -52,32 +62,29 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
     transition: grid-template-rows $step ease $step;
   }
 
-  // Medium screens: the dog drops under the blurb. Its row is sized by the dog's own
-  // (animated) height, since two 0fr/1fr rows would both grow to the taller one's height.
-  @media (max-width: $stackDogBreakpoint) {
+  // Smaller screens: the picture sits under the navbar, the text on the right
+  @media (max-width: $compactBreakpoint) {
     grid-template-columns: auto minmax(0, 1fr);
-    grid-template-rows: $introRow 0fr auto;
     grid-template-areas:
       "nav name"
       "pic blurb";
-
-    &.open {
-      grid-template-rows: $introRow 1fr auto;
-    }
   }
 
-  // Phones: one column, with the navbar on top pushing everything down
+  // Phones: the blurb and the picture each get a full-width row under the navbar.
+  // Only the blurb's row is 0fr/1fr (two such rows would both grow to the taller one's height);
+  // the picture's row is auto, and the picture collapses itself (see .header-dog).
   @include mobile {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto 0fr auto;
+    grid-template-rows: $introRow 0fr auto;
     grid-template-areas:
-      "nav name"
-      "pic blurb";
+      "nav   name"
+      "blurb blurb"
+      "pic   pic";
+    column-gap: $textGapMobile;
     // Keep the whole footprint inside the inset, since the cube sits close to the edge here
     padding: $headerTopMobile $headerInsetMobile 20px $headerInsetMobile;
 
     &.open {
-      grid-template-rows: auto auto 1fr auto;
+      grid-template-rows: $introRow 1fr auto;
     }
   }
 }
@@ -106,40 +113,32 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
   }
 }
 
-// On phones, line text up with the cube rather than the navbar's footprint
-@mixin align-with-cube {
-  @include mobile {
-    margin-left: nav.$navOverhangLeft;
-  }
-}
-
 .header-intro {
   grid-area: name;
+  // Line the name up with the top of the cube
+  padding-top: nav.$navOverhangTop;
+  color: $green;
   // Above the (blank) top-left of the picture, so the title can stay on one line
   position: relative;
   z-index: 1;
 
-  @media (min-width: $stackDogBreakpoint + 1px) {
+  @media (min-width: $compactBreakpoint + 1px) {
     margin-right: -$dogClearLeft;
   }
-  // Line the name up with the top of the cube
-  padding-top: nav.$navOverhangTop;
-  color: $green;
-  @include align-with-cube;
 
-  @include mobile {
-    padding-top: 12px;
+  @media (max-width: $compactBreakpoint) {
+    text-align: right;
   }
 }
 
 .header-name {
-  font-size: 2.1rem;
+  font-size: 2.7rem;
   font-weight: 700;
   line-height: 1.15;
   color: $green;
 
   @include mobile {
-    font-size: 1.7rem;
+    font-size: 2.4rem;
   }
 }
 
@@ -156,22 +155,37 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
     margin: 0 0.5em;
   }
 
-  // One item per line instead of dots
-  @include mobile {
+  // One item per line instead of dots, since a wrapped right-aligned line would end in a dot
+  @media (max-width: $compactBreakpoint) {
     flex-direction: column;
-    font-size: 0.9rem;
+    align-items: flex-end;
     line-height: 1.45;
 
     span::after {
       display: none;
     }
   }
+
+  @include mobile {
+    font-size: 0.9rem;
+  }
 }
 
 .header-blurb {
   grid-area: blurb;
   @include reveal;
-  @include align-with-cube;
+
+  @media (max-width: $compactBreakpoint) {
+    align-items: center;
+    text-align: center;
+    // Clear the part of the picture that overhangs into this column
+    margin-left: max(0px, $dogWidth - $navOpenWidth - $textGap);
+  }
+
+  // Nothing beside it on phones
+  @include mobile {
+    margin-left: 0;
+  }
 }
 
 .header-quote {
@@ -181,6 +195,23 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
   color: $greenMid;
   border-left: 3px solid $lineColor;
   padding-left: 12px;
+
+  @media (max-width: $compactBreakpoint) {
+    border-left: none;
+    border-right: 3px solid $lineColor;
+    padding: 0 12px 0 0;
+  }
+}
+
+.header-quote-author {
+  margin-top: 2px;
+  font-size: 0.9em;
+  font-style: normal;
+  opacity: 0.85;
+
+  &::before {
+    content: '— ';
+  }
 }
 
 .header-links {
@@ -190,6 +221,15 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
   margin-top: 16px;
   // Room for the buttons' hover lift and shadow inside the clipped area
   padding-bottom: 6px;
+
+  // Also the gap above the picture on phones (inside the clipped area, so the row still collapses)
+  @include mobile {
+    padding-bottom: 16px;
+  }
+
+  @media (max-width: $compactBreakpoint) {
+    justify-content: flex-end;
+  }
 }
 
 .header-link {
@@ -221,7 +261,6 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
 .header-dog {
   grid-area: pic;
   @include reveal;
-  @include align-with-cube;
   align-items: flex-end; // against the right edge
   // Pinned to the top and not clipped, so the dog sits in its final spot the whole time and
   // simply fades in once the header has finished growing. Its height is what sizes the open header.
@@ -232,21 +271,31 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
     transition: opacity $fade ease $step * 2;
   }
 
-  // In its own row the dog grows its own height, in step with the blurb's row
-  @media (max-width: $stackDogBreakpoint) {
+  // Under the navbar. Zero width so it doesn't widen the navbar's column (which would push the
+  // name further when the menu opens); the picture overhangs to the right instead.
+  @media (max-width: $compactBreakpoint) {
+    width: 0;
     align-items: flex-start;
-    overflow: hidden;
-    height: 0;
-    transition: height $step ease, opacity $fade ease, visibility 0s linear $fade;
+  }
 
-    // Menu fading out: still full height
+  // Full width row of its own: collapse with a one-row grid going 0fr -> 1fr in step with the blurb's row.
+  // Still invisible while it grows, then fades in like everywhere else.
+  @include mobile {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr); // full width, so the picture's percentage width has something to resolve against
+    grid-template-rows: 0fr;
+    align-items: center;
+    justify-items: center;
+    width: auto;
+    transition: grid-template-rows $step ease, opacity $fade ease, visibility 0s linear $fade;
+
     .open & {
-      height: $dogHeight;
-      transition: height $step ease $step, opacity $fade ease, visibility 0s linear $fade;
+      grid-template-rows: 1fr;
+      transition: grid-template-rows $step ease $step, opacity $fade ease, visibility 0s linear $fade;
     }
 
     .open.revealed & {
-      transition: height $step ease $step, opacity $step ease $step;
+      transition: grid-template-rows $step ease $step, opacity $fade ease $step * 2;
     }
   }
 }
@@ -255,9 +304,16 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
   flex: none;
   margin-top: $dogTop;
   width: $dogWidth;
-  height: $dogHeight;
+  aspect-ratio: math.div($dogCropWidth, $dogCropHeight);
   background-image: url('../../assets/dog.jpg');
   background-repeat: no-repeat;
-  background-size: $dogSource * $dogScale auto;
-  background-position: (-$dogCropX * $dogScale) (-$dogCropY * $dogScale);
+  background-size: $dogBackgroundSize auto;
+  background-position: $dogBackgroundX $dogBackgroundY;
+
+  // Shrinks to fit narrow phones; the gap above comes from the blurb here
+  @include mobile {
+    width: min(#{$dogWidth}, 100%);
+    min-height: 0;
+    margin-top: 0;
+  }
 }

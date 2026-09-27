@@ -41,9 +41,10 @@ export default function Header() {
 
       {/* The blurb and dog stay collapsed until the navbar opens */}
       <div className="header-blurb" aria-hidden={!revealed}>
-        <blockquote className="header-quote">
-          “A stand-in quote will live here until a real one is picked.”
-        </blockquote>
+        <figure className="header-quote">
+          <blockquote>“Play is the highest form of research.”</blockquote>
+          <figcaption className="header-quote-author">Albert Einstein</figcaption>
+        </figure>
         <div className="header-links">
           {LINKS.map(({ href, label, icon }) => (
             <a
