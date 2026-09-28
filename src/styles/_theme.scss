@@ -8,6 +8,10 @@ $ink: #00120B;
 
 $lineColor: rgba($green, 0.25);
 
+// Side padding inside the content panel. Everything in it, dividers included, stays within this.
+$panelPadding: 40px;
+$panelPaddingMobile: 20px;
+
 // Layouts switch to a single column at or below this width
 $mobileBreakpoint: 640px;
 

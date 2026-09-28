@@ -2,8 +2,7 @@
 @use '../../styles/theme' as *;
 @use '../Navbar/geometry' as nav;
 
-$headerInset: 40px; // distance from the panel's corner to the collapsed cube
-$headerInsetMobile: 20px;
+$headerTop: 40px; // distance from the top of the panel to the collapsed cube (the panel pads the sides)
 $headerTopMobile: 12px; // space above the open menu's raised corner
 $textGap: 35px; // space between the navbar and the text beside it, and between the blurb and the dog
 $textGapMobile: 16px;
@@ -51,8 +50,8 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
     "nav name  pic"
     "nav blurb pic";
   column-gap: $textGap;
-  // The navbar's footprint already includes room for its overhang, so subtract it from the inset
-  padding: max(0px, $headerInset - nav.$navOverhangTop) $headerInset 24px max(0px, $headerInset - nav.$navOverhangLeft);
+  // The navbar's footprint already includes room for its overhang, so subtract it from the gap
+  padding: max(0px, $headerTop - nav.$navOverhangTop) 0 24px;
   border-bottom: 1px solid $lineColor;
   transition: grid-template-rows $step ease;
 
@@ -81,7 +80,7 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
       "pic   pic";
     column-gap: $textGapMobile;
     // Keep the whole footprint inside the inset, since the cube sits close to the edge here
-    padding: $headerTopMobile $headerInsetMobile 20px $headerInsetMobile;
+    padding: $headerTopMobile 0 20px;
 
     &.open {
       grid-template-rows: $introRow 1fr auto;
@@ -95,11 +94,11 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
 }
 
 // Hidden until the navbar opens, then fades in while its row grows; fades out with the menu.
-// Content sits at the bottom, so it rises into view as the row opens.
+// Content sits at the top of its row (right under the name), and the row opens downward to show it.
 @mixin reveal {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-start;
   min-height: 0;
   overflow: hidden;
   opacity: 0;
@@ -201,6 +200,11 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
     border-right: 3px solid $lineColor;
     padding: 0 12px 0 0;
   }
+
+  // Gap above the picture on phones (inside the clipped area, so the row still collapses)
+  @include mobile {
+    margin-bottom: 16px;
+  }
 }
 
 .header-quote-author {
@@ -211,50 +215,6 @@ $introRow: minmax(nav.$footprintClosedHeight, auto);
 
   &::before {
     content: '— ';
-  }
-}
-
-.header-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 16px;
-  // Room for the buttons' hover lift and shadow inside the clipped area
-  padding-bottom: 6px;
-
-  // Also the gap above the picture on phones (inside the clipped area, so the row still collapses)
-  @include mobile {
-    padding-bottom: 16px;
-  }
-
-  @media (max-width: $compactBreakpoint) {
-    justify-content: flex-end;
-  }
-}
-
-.header-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.6rem 1.2rem;
-  background: $green;
-  color: $beige;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: $greenBright;
-    color: $ink;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }
 

@@ -4,7 +4,6 @@ $pageBackground: $beigeDark;
 $panelBackground: $beige; // matches the dog sketch's paper colour
 $panelWidth: 1100px;
 $panelMargin: 34px; // gap above and below the panel
-$panelPadding: 40px;
 
 .site {
   min-height: 100vh;
@@ -23,6 +22,8 @@ $panelPadding: 40px;
   max-width: $panelWidth;
   min-height: calc(100vh - #{$panelMargin * 2});
   margin: 0 auto;
+  // Side padding lives here so the header, the page and their dividers all share the same edges
+  padding: 0 $panelPadding;
   background: $panelBackground;
   border: 1px solid $lineColor;
   border-radius: 4px;
@@ -31,15 +32,16 @@ $panelPadding: 40px;
   // Full-bleed on phones
   @include mobile {
     min-height: 100vh;
+    padding: 0 $panelPaddingMobile;
     border: none;
     border-radius: 0;
   }
 }
 
 .panel-content {
-  padding: $panelPadding;
+  padding: $panelPadding 0;
 
   @include mobile {
-    padding: 20px;
+    padding: $panelPaddingMobile 0;
   }
 }

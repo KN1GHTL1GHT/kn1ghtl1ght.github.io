@@ -1,0 +1,159 @@
+@use '../styles/theme' as *;
+
+$photoWidth: 220px;
+$columnGap: 36px;
+
+// Photo with the links under it on the left; label, bio and focus areas on the right.
+// On phones everything stacks, with the label first and the links last.
+.about {
+  display: grid;
+  grid-template-columns: $photoWidth minmax(0, 1fr);
+  grid-template-areas:
+    "photo label"
+    "photo body"
+    "links body";
+  grid-template-rows: auto auto 1fr;
+  column-gap: $columnGap;
+  // Divider under the whole section, below the buttons
+  padding-bottom: 32px;
+  border-bottom: 1px solid $lineColor;
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas:
+      "label"
+      "photo"
+      "body"
+      "links";
+    row-gap: 20px;
+  }
+}
+
+.about-photo {
+  grid-area: photo;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 35%;
+  border: 1px solid $lineColor;
+  border-radius: 4px;
+
+  // Wide crop of the face, so it doesn't fill the whole screen
+  @include mobile {
+    aspect-ratio: 4 / 3;
+    object-position: 50% 28%;
+  }
+}
+
+// Small spaced-out capitals above a section
+.section-label {
+  grid-area: label;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: $greenMid;
+
+  // The grid's row gap spaces it on phones
+  @include mobile {
+    margin-bottom: 0;
+  }
+}
+
+.about-body {
+  grid-area: body;
+  color: $green;
+
+  p + p {
+    margin-top: 0.9em;
+  }
+
+  a {
+    color: $greenMid;
+    font-weight: 600;
+    text-decoration-color: $lineColor;
+    text-underline-offset: 3px;
+
+    &:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+}
+
+.about-focus {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
+  margin-top: 20px;
+  list-style: none;
+
+  li {
+    position: relative;
+    padding-left: 16px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.65em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $greenMid;
+    }
+  }
+
+  @include mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.about-links {
+  grid-area: links;
+  align-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+
+  // Stacked to the photo's width (they don't fit side by side in its column)
+  flex-direction: column;
+
+  .link-button {
+    justify-content: center;
+  }
+
+  @include mobile {
+    flex-direction: row;
+    margin-top: 0;
+  }
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1.2rem;
+  background: $green;
+  color: $beige;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: $greenBright;
+    color: $ink;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
