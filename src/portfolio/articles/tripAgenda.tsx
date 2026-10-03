@@ -8,7 +8,8 @@ const tripAgenda: Project = {
   slug: 'trip-agenda',
   title: 'Software Engineering Capstone: TripAgenda',
   kicker: 'Android App',
-  date: '2025-10-30',
+  endDate: '2025-10-30',
+  startDate: '2025-08-26', // TODO: add startDate
   summary:
     'An Android vacation planner with Google ML Kit ticket scanning, offline storage and Google Cloud API integration.',
   tags: ['Android', 'Kotlin', 'Google Cloud', 'Google ML Kit'],
@@ -103,11 +104,8 @@ const tripAgenda: Project = {
           <>
             <p>
               The app has 7 testing classes, with a maximum data volume of 14,850 trip elements. The full app is on
-              GitHub (linked at the top of this page). My Google API key isn't included there, so some features are
+              GitHub (linked at the top of this page). My Google API key isn't included there (obviously), so some features are
               unavailable in that build.
-            </p>
-            <p>
-              For access to the app's internal testing track, send me a valid Google Play account email on LinkedIn.
             </p>
           </>
         ),

@@ -1,22 +1,25 @@
 import type { Project } from '../types'
-import { Figure } from '../components'
+import { Clip, Figure } from '../components'
 import takeoffArea from '../../assets/portfolio/algobrick/takeoff-area.jpg'
+import takeoffAddVertex from '../../assets/portfolio/algobrick/takeoff-add-vertex.mp4'
+import takeoffAddVertexPoster from '../../assets/portfolio/algobrick/takeoff-add-vertex-poster.jpg'
 import takeoffCount from '../../assets/portfolio/algobrick/takeoff-count.jpg'
 import takeoffLines from '../../assets/portfolio/algobrick/takeoff-lines.jpg'
-import vendorImport from '../../assets/portfolio/algobrick/vendor-import.jpg'
 import vendorsQuotes from '../../assets/portfolio/algobrick/vendors-quotes.jpg'
 import estimate from '../../assets/portfolio/algobrick/estimate.jpg'
 
 // ROUGH DRAFT, written from the walkthrough recording alone (it has no narration).
-// TODO: add the date, your role, the team, the tech stack and any results.
+// TODO: add startDate/endDate, your role, the team, the tech stack and any results.
 // TODO: add the walkthrough video once it's hosted (e.g. YouTube); the raw recording is too big for the repo.
 const algobrick: Project = {
   slug: 'algobrick',
-  title: 'AlgoBrick',
-  kicker: 'Construction Estimating',
+  title: 'UX Engineer @AlgoBrick.ai',
+  kicker: 'AI Verification Interface Work',
+  startDate: '2026-05-01',
+  endDate: '2026-09-06',
   summary:
-    'A web tool that takes a construction estimator from measuring quantities on site-plan PDFs to a priced estimate built from real vendor quotes.',
-  tags: ['Takeoff', 'Estimating', 'Vendor Pricing'],
+    'Designing the human review layer for an AI takeoff tool, how I turned an unusable frontend into a review interface for AI output.',
+  tags: ['Startup', 'Construction', 'AI Verification'],
   thumbnail: takeoffLines,
   thumbnailAlt: 'Storm drain lines traced over a civil site plan',
 
@@ -24,22 +27,23 @@ const algobrick: Project = {
     intro: (
       <>
         <p>
-          Before a contractor can bid on a job, an estimator has to work out exactly what the job needs: how many
-          square feet of bio-retention area, how many storm drain inlets and manholes, how many linear feet of pipe.
-          That &ldquo;takeoff&rdquo; is usually done by hand, measuring off PDF plan sheets, and the quantities then
-          get priced by cross-referencing spreadsheets of vendor quotes.
+          <strong>Algobrick</strong> is building an AI-assisted takeoff tool for construction estimators.
+          A takeoff means measuring everything on a set of blueprints (pipe lengths, paved areas, manhole counts) so a contractor can price a bid. 
         </p>
         <p>
-          It's slow, repetitive work spread across several tools, and a missed inlet or a mis-scaled measurement flows
-          straight into the bid. AlgoBrick brings it into one flow: <strong>Takeoff</strong>, then{' '}
-          <strong>Estimate</strong>, then <strong>Bid Package</strong>.
+          The original plan was full automation: upload a blueprint, get a finished takeoff. But the AI output was notaccurate enough to run unsupervised, so the company pivoted. A human would review and correct the AI's work, and the product would live or die on how fast that review could happen. I was brought on to fix their first attempt at that review layer.
+        </p>
+        <p>
+          It wasn't close to ready. There was no undo or redo. You couldn't select, delete, or add a single point, so a slightly wrong AI shape had to be redrawn from scratch. Esc confirmed a shape instead of canceling it. And single source of truth issues in the data model caused unpredictable bugs that got in the way of testing at full expert speed.
+        </p>
+        <p>
+          Underneath all of it, the tool ignored how estimators already work. Most of them learned on Bluebeam, the industry standard, and years of use have built habits into their hands, from how they draw shapes to how they move around the blueprint. Algobrick's frontend worked against those expectations at every turn, adding needless friction to every action.
         </p>
       </>
     ),
   },
 
   artifacts: {
-    intro: <p>A walkthrough of the tool on a real civil site plan, drawn at 1&Prime; = 20&prime;.</p>,
     subsections: [
       {
         id: 'takeoff-areas',
@@ -58,45 +62,14 @@ const algobrick: Project = {
               alt="A bio-retention area traced as a polygon on the site plan"
               caption="Tracing the bio-retention area as a polygon."
             />
-          </>
-        ),
-      },
-      {
-        id: 'takeoff-counts',
-        title: 'Takeoff: counts and a shared legend',
-        content: (
-          <>
-            <p>
-              Every takeoff belongs to a legend label (Bio Retention Area, Storm Drain Inlet, Storm Drain Manhole,
-              Storm Drain Line), so quantities group themselves as you work. The Count tool drops markers for discrete
-              items like inlets and manholes, and the Takeoffs panel tracks each one with an approval state.
-            </p>
-            <Figure
-              width={1400}
-              height={741}
-              src={takeoffCount}
-              alt="Count markers on storm drain inlets, with the legend and takeoffs panel"
-              caption="Counting storm drain inlets against the legend."
-            />
-          </>
-        ),
-      },
-      {
-        id: 'takeoff-lines',
-        title: 'Takeoff: lines that join up',
-        content: (
-          <>
-            <p>
-              Pipe runs are measured with the Line tool. Separate segments can be welded at their endpoints and
-              combined into one run with a single total length, so a storm drain line that crosses several drawings
-              still counts once.
-            </p>
-            <Figure
-              width={1400}
-              height={741}
-              src={takeoffLines}
-              alt="Storm drain line segments highlighted on the plan, listed with their lengths"
-              caption="Storm drain lines measured across the sheet, with lengths in the Takeoffs panel."
+            {/* 0:57–1:16 of the walkthrough at 1.5x, cropped to the drawing */}
+            <Clip
+              width={1132}
+              height={716}
+              src={takeoffAddVertex}
+              poster={takeoffAddVertexPoster}
+              label="Points being added to the bio-retention area, with dotted lines previewing each new outline"
+              caption="Adding points to an existing area: dotted lines preview the new outline before each point is placed."
             />
           </>
         ),
@@ -114,21 +87,14 @@ const algobrick: Project = {
             <Figure
               width={1400}
               height={741}
-              src={vendorImport}
-              alt="Import vendor pricing dialog mapping workbook sheets and columns"
-              caption="Mapping a vendor workbook's sheets and columns."
+              src={vendorsQuotes}
+              alt="Vendors and quotes tab listing legend groups by CSI code and a vendor's price list"
+              caption="Vendors & Quotes: legend groups matched to CSI codes, and the imported price list."
             />
             <p>
               Imported materials are matched to legend groups by CSI code, so each takeoff line knows which vendor
               items can price it.
             </p>
-            <Figure
-              width={1400}
-              height={741}
-              src={vendorsQuotes}
-              alt="Vendors and quotes tab listing legend groups by CSI code and a vendor's price list"
-              caption="Vendors & Quotes: legend groups matched to CSI codes, and the imported price list."
-            />
           </>
         ),
       },
@@ -161,13 +127,16 @@ const algobrick: Project = {
     intro: (
       <>
         <p>
-          Most of the interface decisions came down to keeping an estimator in flow on a dense drawing: every tool has
-          on-canvas hints (Enter to finish, Esc to cancel), and quantities update live in the side panel instead of on
-          a separate screen.
+          The biggest lesson from Algobrick was how much of expert work runs on muscle memory. An experienced estimator doesn't think about how to draw an area in Bluebeam. Their hands just do it, and their attention stays on the blueprint. When a tool breaks those habits, even in small ways like a hotkey that does the opposite of what's expected, that attention gets pulled back onto the tool itself.
         </p>
         <p>
-          Anything the tool detects or derives stays pending until a person approves it. In bidding, a wrong number is
-          expensive, so the tool speeds up the takeoff without taking the estimator's judgement out of it.
+          That matters more in an AI product, not less. When an AI does the first pass, the human's job becomes verification: scanning the output, catching mistakes, and fixing them. Verification is attention-heavy work. Every bit of mental effort spent fighting the interface is effort not spent noticing that a sewer line is mislabled or too short. A clumsy interface doesn't just slow people down, it makes them worse reviewers.
+        </p>
+        <p>
+          It also changes how people treat the AI. If fixing a mistake costs more than ignoring it, people start accepting output they shouldn't, or they stop trusting the AI and redo everything by hand. Both outcomes defeat the purpose of the product. So my design goal became simple: make correcting the AI cheaper than redrawing, and make it feel like the tool they already know. That's why the label editing feature mattered so much. When the AI traced a shape correctly but labeled it wrong, users could keep the good geometry and fix only the mistake. It's also why the approval step mattered. It made "a human checked this" an explicit action instead of an assumption.
+        </p>
+        <p>
+          This is the same principle that shapes cockpit design and other high-stakes interfaces: when automation does the work, the human becomes the safety check, and the interface's job is to protect their attention. I came in to build a frontend. I left thinking of it as designing the human half of a human-in-the-loop system.
         </p>
       </>
     ),

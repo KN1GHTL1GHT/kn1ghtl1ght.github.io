@@ -17,11 +17,19 @@ export const ARTICLE_SECTIONS = [
   { id: 'work-reflection', title: 'Work Reflection', key: 'reflection' },
 ] as const
 
-export function formatDate(iso: string): string {
+function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     year: 'numeric',
-    month: 'short',
+    month: 'long',
     day: 'numeric',
     timeZone: 'UTC',
   })
+}
+
+// "May 1, 2026 – September 6, 2026", "May 1, 2026 – Present", or a single date
+export function formatDateRange({ startDate, endDate }: Pick<Project, 'startDate' | 'endDate'>): string | undefined {
+  const start = startDate && formatDate(startDate)
+  const end = endDate === 'present' ? 'Present' : endDate && formatDate(endDate)
+  if (start && end) return `${start} – ${end}`
+  return start || end || undefined
 }

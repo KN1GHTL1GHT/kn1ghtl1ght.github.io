@@ -323,7 +323,8 @@ $headingOffset: 24px; // space left above a heading after jumping to it
     display: block;
   }
 
-  img {
+  img,
+  video {
     display: block;
     width: 100%;
     height: auto;

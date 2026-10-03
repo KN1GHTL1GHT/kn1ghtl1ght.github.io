@@ -2,7 +2,7 @@ import { useEffect, useState, type MouseEvent } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
 import clsx from 'clsx'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { ARTICLE_SECTIONS, findProject, formatDate } from '../portfolio/projects'
+import { ARTICLE_SECTIONS, findProject, formatDateRange } from '../portfolio/projects'
 import './Portfolio.scss'
 
 // A heading counts as "current" once it scrolls above this line (px from the top of the window)
@@ -69,7 +69,7 @@ export default function PortfolioArticle() {
         <p className="project-card-kicker">{project.kicker}</p>
         <h2 className="article-title">{project.title}</h2>
         <div className="article-meta">
-          {project.date && <span className="project-card-date">{formatDate(project.date)}</span>}
+          {formatDateRange(project) && <span className="project-card-date">{formatDateRange(project)}</span>}
           {project.tags && (
             <ul className="project-tags">
               {project.tags.map((tag) => (

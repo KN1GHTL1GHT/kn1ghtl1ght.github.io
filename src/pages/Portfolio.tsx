@@ -1,14 +1,14 @@
 import { Link } from 'react-router'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGamepad } from '@fortawesome/free-solid-svg-icons'
-import { PROJECTS, formatDate } from '../portfolio/projects'
+import { PROJECTS, formatDateRange } from '../portfolio/projects'
 import './Portfolio.scss'
 
 // Title cards, newest first; each opens its article
 export default function Portfolio() {
   return (
     <main className="portfolio">
-      <h2 className="section-label">Projects</h2>
+      <h2 className="section-label">Portfolio</h2>
 
       <ul className="project-cards">
         {PROJECTS.map((project) => (
@@ -25,7 +25,7 @@ export default function Portfolio() {
               <div className="project-card-body">
                 <p className="project-card-kicker">{project.kicker}</p>
                 <h3 className="project-card-title">{project.title}</h3>
-                {project.date && <p className="project-card-date">{formatDate(project.date)}</p>}
+                {formatDateRange(project) && <p className="project-card-date">{formatDateRange(project)}</p>}
                 {project.summary && <p className="project-card-summary">{project.summary}</p>}
                 {project.tags && (
                   <ul className="project-tags">

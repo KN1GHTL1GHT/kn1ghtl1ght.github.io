@@ -23,7 +23,9 @@ export type Project = {
   slug: string // the article lives at /portfolio/<slug>
   title: string
   kicker: string // small category line above the title
-  date?: string // ISO date, e.g. '2025-10-30'
+  // ISO dates, e.g. '2026-05-01'. Shown as a range when both are set; endDate 'present' for ongoing work.
+  startDate?: string
+  endDate?: string | 'present'
   summary?: string
   tags?: string[]
   thumbnail?: string
