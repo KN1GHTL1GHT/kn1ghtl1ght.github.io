@@ -36,6 +36,9 @@ $secondaryFaceColor: $green;
   position: absolute;
   top: $navOverhangTop;
   left: $navOverhangLeft;
+  // The nav's own box is sized by the (usually hidden) menu and reaches past the header, so it
+  // mustn't catch clicks meant for the page underneath; only the cube and the open menu do
+  pointer-events: none;
 
   // Read by Navbar.tsx
   --cube-rest: rotateX(#{$cubeRotationX}) rotateY(#{$cubeRotationY});
@@ -57,6 +60,7 @@ $secondaryFaceColor: $green;
     top: $cubeTop;
     left: $cubeLeft;
     cursor: pointer;
+    pointer-events: auto;
     transition: transform $morphDuration ease;
     z-index: 2;
 

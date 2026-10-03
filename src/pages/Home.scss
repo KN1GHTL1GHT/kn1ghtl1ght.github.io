@@ -47,20 +47,8 @@ $columnGap: 36px;
   }
 }
 
-// Small spaced-out capitals above a section
-.section-label {
+.about > .section-label {
   grid-area: label;
-  margin-bottom: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: $greenMid;
-
-  // The grid's row gap spaces it on phones
-  @include mobile {
-    margin-bottom: 0;
-  }
 }
 
 .about-body {
@@ -129,31 +117,5 @@ $columnGap: 36px;
   @include mobile {
     flex-direction: row;
     margin-top: 0;
-  }
-}
-
-.link-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.6rem 1.2rem;
-  background: $green;
-  color: $beige;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: $greenBright;
-    color: $ink;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }

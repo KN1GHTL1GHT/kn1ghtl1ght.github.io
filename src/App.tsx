@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import Header from './components/Header/Header'
 import Home from './pages/Home'
 import Portfolio from './pages/Portfolio'
+import PortfolioArticle from './pages/PortfolioArticle'
 import Devlogs from './pages/Devlogs'
 import './App.scss'
 
@@ -15,6 +16,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/portfolio" element={<Portfolio />} />
+              <Route path="/portfolio/:slug" element={<PortfolioArticle />} />
               <Route path="/devlogs" element={<Devlogs />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
