@@ -28,7 +28,8 @@ export type Project = {
   endDate?: string | 'present'
   summary?: string
   tags?: string[]
-  thumbnail?: string
+  thumbnail?: string // card image; when thumbnailVideo is set, it's that clip's first frame
+  thumbnailVideo?: string // short silent clip that loops on the card
   thumbnailAlt?: string
   links?: ProjectLink[]
   // Every article has the same three sections, in this order

@@ -1,7 +1,10 @@
+import { useRef } from 'react'
 import { Link } from 'react-router'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGamepad } from '@fortawesome/free-solid-svg-icons'
+import { faImage } from '@fortawesome/free-solid-svg-icons'
 import { PROJECTS, formatDateRange } from '../portfolio/projects'
+import type { Project } from '../portfolio/types'
+import { useAutoplay } from '../portfolio/useAutoplay'
 import './Portfolio.scss'
 
 // Title cards, newest first; each opens its article
@@ -15,11 +18,7 @@ export default function Portfolio() {
           <li key={project.slug}>
             <Link to={`/portfolio/${project.slug}`} className="project-card">
               <div className="project-card-image">
-                {project.thumbnail ? (
-                  <img src={project.thumbnail} alt={project.thumbnailAlt ?? ''} loading="lazy" />
-                ) : (
-                  <FontAwesomeIcon icon={faGamepad} className="project-card-placeholder" />
-                )}
+                <CardMedia project={project} />
               </div>
 
               <div className="project-card-body">
@@ -42,4 +41,27 @@ export default function Portfolio() {
       </ul>
     </main>
   )
+}
+
+// A looping clip, a still image, or a placeholder icon when there's neither
+function CardMedia({ project }: { project: Project }) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  useAutoplay(videoRef)
+
+  if (project.thumbnailVideo) {
+    return (
+      <video
+        ref={videoRef}
+        src={project.thumbnailVideo}
+        poster={project.thumbnail}
+        aria-label={project.thumbnailAlt}
+        muted
+        loop
+        playsInline
+        preload="metadata"
+      />
+    )
+  }
+  if (project.thumbnail) return <img src={project.thumbnail} alt={project.thumbnailAlt ?? ''} loading="lazy" />
+  return <FontAwesomeIcon icon={faImage} className="project-card-placeholder" />
 }

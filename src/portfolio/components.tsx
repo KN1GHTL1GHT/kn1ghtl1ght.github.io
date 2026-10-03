@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useAutoplay } from './useAutoplay'
 
 // Small pieces articles are written with
 
@@ -38,21 +39,7 @@ type ClipProps = {
 // People who ask for reduced motion get a paused first frame with play controls instead.
 export function Clip({ src, poster, label, width, height, caption }: ClipProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      video.controls = true
-      return
-    }
-    // Set muted on the element itself: browsers only allow autoplay for muted video,
-    // and React doesn't always reflect the muted prop before playback is attempted
-    video.muted = true
-    video.play().catch(() => {
-      video.controls = true // autoplay blocked; let the reader start it
-    })
-  }, [])
+  useAutoplay(videoRef, { showControlsIfNotPlaying: true })
 
   return (
     <figure className="article-figure">

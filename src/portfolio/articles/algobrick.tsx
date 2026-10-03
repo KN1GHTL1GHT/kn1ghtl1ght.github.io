@@ -3,8 +3,6 @@ import { Clip, Figure } from '../components'
 import takeoffArea from '../../assets/portfolio/algobrick/takeoff-area.jpg'
 import takeoffAddVertex from '../../assets/portfolio/algobrick/takeoff-add-vertex.mp4'
 import takeoffAddVertexPoster from '../../assets/portfolio/algobrick/takeoff-add-vertex-poster.jpg'
-import takeoffCount from '../../assets/portfolio/algobrick/takeoff-count.jpg'
-import takeoffLines from '../../assets/portfolio/algobrick/takeoff-lines.jpg'
 import vendorsQuotes from '../../assets/portfolio/algobrick/vendors-quotes.jpg'
 import estimate from '../../assets/portfolio/algobrick/estimate.jpg'
 
@@ -18,10 +16,11 @@ const algobrick: Project = {
   startDate: '2026-05-01',
   endDate: '2026-09-06',
   summary:
-    'Designing the human review layer for an AI takeoff tool, how I turned an unusable frontend into a review interface for AI output.',
+    'Designing the human review layer for an AI takeoff tool, how I created a review interface for AI output by observing customer usage patterns.',
   tags: ['Startup', 'Construction', 'AI Verification'],
-  thumbnail: takeoffLines,
-  thumbnailAlt: 'Storm drain lines traced over a civil site plan',
+  thumbnail: takeoffAddVertexPoster,
+  thumbnailVideo: takeoffAddVertex,
+  thumbnailAlt: 'Points being added to a bio-retention area on a civil site plan',
 
   problem: {
     intro: (

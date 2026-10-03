@@ -1,10 +1,9 @@
 import type { Project } from './types'
 import algobrick from './articles/algobrick'
-import videoGame from './articles/videoGame'
 import tripAgenda from './articles/tripAgenda'
 
 // Newest first; this is the order of the cards on the Portfolio page
-export const PROJECTS: Project[] = [algobrick, videoGame, tripAgenda]
+export const PROJECTS: Project[] = [algobrick, tripAgenda]
 
 export function findProject(slug: string | undefined): Project | undefined {
   return PROJECTS.find((project) => project.slug === slug)

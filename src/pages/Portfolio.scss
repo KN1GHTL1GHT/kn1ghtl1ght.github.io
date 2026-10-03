@@ -54,7 +54,8 @@ $headingOffset: 24px; // space left above a heading after jumping to it
   border-bottom: 1px solid $lineColor;
   background: rgba($green, 0.06);
 
-  img {
+  img,
+  video {
     width: 100%;
     height: 100%;
     object-fit: cover;

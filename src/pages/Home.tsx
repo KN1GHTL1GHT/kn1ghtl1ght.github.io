@@ -1,10 +1,14 @@
 import { Link } from 'react-router'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons'
+import { faFileArrowDown } from '@fortawesome/free-solid-svg-icons'
 import aboutPhoto from '../assets/about-photo.jpg'
 import './Home.scss'
 
-const FOCUS_AREAS = ['Full-Stack Development', 'Mobile Development', 'Cloud Integration', 'AI/ML Integration']
+const FOCUS_AREAS = ['Human-in-the-Loop Design', 'Frontend Engineering', 'UX Research', 'Interactive Systems']
+
+// Served from public/; replace that file to update it
+const RESUME_URL = `${import.meta.env.BASE_URL}Amogh_Patki_Resume.pdf`
 
 const LINKS = [
   { href: 'https://github.com/KN1GHTL1GHT', label: 'GitHub', icon: faGithub },
@@ -21,20 +25,27 @@ export default function Home() {
 
         <div className="about-body">
           <p>
-            Hello! I'm Amogh, a software engineer based in Portland, Oregon. I specialize in building full-stack
-            applications with a strong focus on mobile development and cloud integration. My approach to software
-            engineering combines technical precision with user-centered design, always striving to create solutions
-            that are both powerful and intuitive. I'm particularly skilled at integrating complex systems—from Google
-            Cloud APIs to machine learning frameworks—while maintaining clean, maintainable code.
+            Hi! I'm Amogh, a UX engineer and HCI master's student at the University of Maryland. I design and build
+            interfaces for people doing skilled, high-stakes work, with a focus on how experts actually use their tools:
+            the habits in their hands, the attention they can spare, and what happens when automation gets it wrong.
           </p>
           <p>
-            When I'm not coding, you'll find me cheering on my favorite sports teams (Trailblazers and Seahawks),
-            exploring Portland's incredible food scene, or spending time with my dog. I believe the best software comes
-            from developers who maintain balance and curiosity in all aspects of life. My strengths lie in rapid
-            prototyping, problem-solving under constraints, and bridging the gap between technical capabilities and user
-            needs. Whether it's Android development in Kotlin, building scalable web applications, or integrating AI/ML
-            features, I thrive on turning complex challenges into elegant solutions. Check out my{' '}
-            <Link to="/portfolio">portfolio</Link> and <Link to="/devlogs">devlogs</Link> to see what I've been building!
+            Most recently, I built the human review layer for an AI construction takeoff platform, turning an AI's first
+            draft into something estimators could check and correct at full speed. Before that, I studied software
+            engineering and game development, and I now run a solo indie studio where I build games in Rust,
+            experimenting with AI-driven development along the way. Games taught me that good interaction design is felt
+            before it's understood, and that lesson shapes everything I build.
+          </p>
+          <p>
+            I'm especially interested in human factors and operator interfaces: tools where a person and a system share
+            the work, and the interface decides whether that partnership holds up under pressure.
+          </p>
+          <p>
+            Outside of work, I'm cheering on the Trail Blazers and Seahawks, cooking, or spending time with my dog.
+          </p>
+          <p>
+            Check out my <Link to="/portfolio">portfolio</Link> and <Link to="/devlogs">devlogs</Link> to see what I've
+            been building.
           </p>
 
           <ul className="about-focus">
@@ -51,6 +62,10 @@ export default function Home() {
               <span>{label}</span>
             </a>
           ))}
+          <a href={RESUME_URL} download className="link-button">
+            <FontAwesomeIcon icon={faFileArrowDown} />
+            <span>Resume</span>
+          </a>
         </div>
       </section>
     </main>

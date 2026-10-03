@@ -2,6 +2,9 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import type { Project } from '../types'
 import { Figure, YouTube } from '../components'
 import userFlowDiagram from '../../assets/portfolio/trip-agenda/user-flow-diagram.png'
+// 0:30–0:35 of the ticket scanner demo
+import scannerPreview from '../../assets/portfolio/trip-agenda/scanner-preview.mp4'
+import scannerPreviewPoster from '../../assets/portfolio/trip-agenda/scanner-preview-poster.jpg'
 
 // Content carried over from the old site's TripAgenda page, re-sorted into the three sections.
 const tripAgenda: Project = {
@@ -13,8 +16,9 @@ const tripAgenda: Project = {
   summary:
     'An Android vacation planner with Google ML Kit ticket scanning, offline storage and Google Cloud API integration.',
   tags: ['Android', 'Kotlin', 'Google Cloud', 'Google ML Kit'],
-  thumbnail: userFlowDiagram,
-  thumbnailAlt: "TripAgenda's screen flow, split between Views and Compose",
+  thumbnail: scannerPreviewPoster,
+  thumbnailVideo: scannerPreview,
+  thumbnailAlt: 'The ticket scanner reading a train ticket and filling in the trip details',
   links: [{ label: 'GitHub', href: 'https://github.com/KN1GHTL1GHT/VacationPlannerPatki', icon: faGithub }],
 
   problem: {
